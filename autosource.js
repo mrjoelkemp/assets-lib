@@ -109,9 +109,13 @@ define(['jquery', 'nbd/Class'], function($, Class) {
      */
     source : function( search, callback ) {
       // Run the local search first
-      callback( this._local.length ?
-                this.filter(merge.apply(null, this._local.map(this.callLocal, search)), search) :
-                [] );
+      var local = this._local.length ?
+        this.filter(merge.apply(null, this._local.map(this.callLocal, search)), search) :
+        [];
+
+      if (local.length) {
+        callback( local );
+      }
 
       // Run the remote searches
       if ( this._remotes.length ) {
