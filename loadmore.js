@@ -11,13 +11,15 @@ define(['jquery', 'nbd/Class', 'nbd/util/construct', 'nbd/util/extend'
 
     loading : false,
 
+    moreSelector : '.see-more-button-container',
+
     init : function($content, data, callback) {
       this.data = data || {};
       this.callback = callback;
       this.loading = false;
       this.$content = $content;
 
-      this.$more = $('.see-more-button-container', this.data.$pagination);
+      this.$more = $(this.moreSelector, this.data.$pagination);
 
       this.get = this.more.bind(this, undefined);
 
@@ -42,6 +44,7 @@ define(['jquery', 'nbd/Class', 'nbd/util/construct', 'nbd/util/extend'
     },
 
     more : function(option) {
+      this.loading = true;
       return this.load(option)
       .then(this.render.bind(this))
       .done(this.after.bind(this))
