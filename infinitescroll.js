@@ -11,7 +11,7 @@ define(['jquery'], function($) {
 
     return (scrollBottom / (window.innerHeight || $window.height()));
   }
-  
+
   function scroll() {
     var breakpoint, s = scrolled();
 
@@ -44,6 +44,8 @@ define(['jquery'], function($) {
       cb.remove(fn);
     }
   };
+
+  infinitescroll.check = scroll;
 
   $window.on('scroll', scroll);
 
