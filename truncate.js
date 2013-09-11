@@ -8,12 +8,19 @@ define(function() {
    * @param limit {number} Number of lines at which to truncate
    */
   return function(textNode, limit) {
-    if (!textNode.length) { return; }
+    if (!textNode.length ||
+        !document.createRange) { return; }
 
-    var sel = document.createRange();
+    var sel = document.createRange(),
+    first;
+
+    if (!sel.getBoundingClientRect) { return; }
+
+    first = /[^\s]/.exec(textNode.textContent);
+    if (!first) { return; }
 
     sel.setStartBefore(textNode);
-    sel.setEnd(textNode, 1);
+    sel.setEnd(textNode, first.index + 1);
 
     var height = sel.getBoundingClientRect().height,
     maxHeight = height * (limit + 0.5),
@@ -30,7 +37,7 @@ define(function() {
     }
 
     // Binary search for the last character within bounds
-    while (delta !== 0) {
+    while (delta) {
       delta = ~~(delta / 2);
       length = length + dir * delta;
       sel.setEnd(textNode, length);
@@ -41,10 +48,10 @@ define(function() {
     var content = textNode.textContent.substr(0, length);
     content = content.replace(/\s+$/,'');
 
-    sel.setEndAfter(textNode);
     // Make sure the ellipsis does not wrap
     do {
       textNode.textContent = content + '…';
+      sel.setEndAfter(textNode);
       height = sel.getBoundingClientRect().height;
       content = content.substr(0, --length);
     }
