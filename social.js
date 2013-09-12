@@ -1,8 +1,9 @@
+// Initialize 3rd party social sharing widgets
 /*global FB, twttr, IN, STMBLPN */
 define(['jquery'], function($) {
   'use strict';
 
-  return {
+  var api = {
     init : function($context) {
       this.twitter($context);
       this.facebook($context);
@@ -38,7 +39,6 @@ define(['jquery'], function($) {
     pinterest : function pinterest($context) {
       $('.viral-button-pinterest', $context).on('click', function() {
         require(['//assets.pinterest.com/js/pinmarklet.js'], function() {
-
           if (pinterest.PIN) {
             pinterest.PIN.f.init();
             return;
@@ -47,7 +47,6 @@ define(['jquery'], function($) {
           pinterest.PIN = Object.keys(window).filter(function(key) {
             return (/^PIN_/).test(key);
           })[0];
-
         });
       });
     },
@@ -61,4 +60,5 @@ define(['jquery'], function($) {
     }
   };
 
+  return api;
 });
