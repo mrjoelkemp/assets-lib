@@ -1,3 +1,4 @@
+// Events for scrolling past points in pages
 define(['jquery'], function($) {
   'use strict';
 
@@ -54,7 +55,7 @@ define(['jquery'], function($) {
 
         cb.cache = cb.cache || false;
 
-        if ( cb.cache !== cache ) {
+        if (cb.cache !== cache) {
           cb.fire(cache);
           cb.cache = cache;
         }
@@ -62,7 +63,7 @@ define(['jquery'], function($) {
     };
   }
 
-  function register( breakpoint, callback, context ) {
+  function register(breakpoint, callback, context) {
     breakpoint = normalize(breakpoint);
 
     var cb = registry[context][breakpoint];
@@ -74,13 +75,13 @@ define(['jquery'], function($) {
     cb.add(callback);
   }
 
-  function unregister( breakpoint, callback, context ) {
+  function unregister(breakpoint, callback, context) {
     context = context || 'window';
 
     var bp;
 
-    if ( callback ) {
-      if ( breakpoint ) {
+    if (callback) {
+      if (breakpoint) {
         registry[context][breakpoint].remove(callback);
         return;
       }
@@ -91,30 +92,36 @@ define(['jquery'], function($) {
       return;
     }
 
-    if ( typeof breakpoint === 'string') {
+    if (typeof breakpoint === 'string') {
       registry[context][breakpoint].empty();
       delete registry[context][breakpoint];
     }
 
-    if ( context ) {
+    if (context) {
       delete registry[context];
     }
   }
 
-  function scrollpoint( breakpoint, callback, context ) {
+  /**
+   * @param breakpoint {Number|String} Number of pixels scrolled down
+   * or percentage of context height e.g. '50%' or 0.5
+   * @param callback {Function}
+   * @param context {DOM|jQuery}
+   */
+  function scrollpoint(breakpoint, callback, context) {
     context = context || 'window';
 
     var $context = context === 'window' ? $window : $(context),
-        n;
+        point;
 
-    if ( !registry.hasOwnProperty(context) ) {
+    if (!registry.hasOwnProperty(context)) {
       registry[context] = {};
       $context.on('scroll', scroll(context));
     }
 
     if (typeof breakpoint === 'object') {
-      for (n in breakpoint) {
-        register(n, breakpoint[n], context);
+      for (point in breakpoint) {
+        register(point, breakpoint[point], context);
       }
       return;
     }
