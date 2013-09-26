@@ -1,8 +1,10 @@
 define(['jquery'], function($) {
   'use strict';
 
-  var $window = $(window), $document = $(document),
-  registry = {};
+  var $window = $(window),
+      $document = $(document),
+      scrollCache = {},
+      registry = {};
 
   // Check if the user's viewport has scrolled based a defined breakpoint
   function scrolled($context) {
@@ -42,6 +44,9 @@ define(['jquery'], function($) {
 
     if (!registry[context]) {
       registry[context] = {};
+      scrollCache[context] = scroll(context);
+
+      $context.on('scroll', scrollCache[context]);
     }
 
     cb = registry[context][breakpoint];
@@ -53,20 +58,28 @@ define(['jquery'], function($) {
     cb.add(callback);
 
     // First check
-    scroll(context)();
-
-    $context.on('scroll', scroll(context));
+    scrollCache[context]();
   }
 
   infinitescroll.remove = function(fn, context) {
     context = context || 'window';
 
-    var breakpoint, cb;
+    var breakpoint, cb,
+        $context = context === 'window' ? $window : $(context);
 
     for ( breakpoint in registry[context] ) {
       cb = registry[context][breakpoint];
       cb.remove(fn);
     }
+
+    $context.off('scroll', scrollCache[context]);
+    delete scrollCache[context];
+  };
+
+  infinitescroll.check = function(context) {
+    context = context || 'window';
+
+    scrollCache[context]();
   };
 
   return infinitescroll;

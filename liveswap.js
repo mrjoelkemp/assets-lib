@@ -8,15 +8,17 @@ define(['nbd/util/extend'], function(extend) {
   );
 
   return function(moduleName, cachebuster) {
-    var conf = cachebuster ?
-      { urlArgs: "cb="+cachebuster } :
-      {};
-
-    sideload(conf, [moduleName], function(module) {
+    var args = [[moduleName], function(module) {
       requirejs.undef(moduleName);
       define(moduleName, function() { return module; });
       requirejs([moduleName]);
       sideload.undef(moduleName);
-    });
+    }];
+
+    if (cachebuster) {
+      args.unshift({ urlArgs: "cb="+cachebuster });
+    }
+
+    sideload.apply(null, args);
   };
 });
