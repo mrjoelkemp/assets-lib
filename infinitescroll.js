@@ -4,48 +4,70 @@ define(['jquery'], function($) {
   var $window = $(window), $document = $(document),
   registry = {};
 
-  function scrolled() {
-    var scrollBottom = $document.height() -
-        (window.innerHeight || $window.height()) -
-        $window.scrollTop();
+  // Check if the user's viewport has scrolled based a defined breakpoint
+  function scrolled($context) {
+    var elementHeight, scrollBottom;
 
-    return (scrollBottom / (window.innerHeight || $window.height()));
-  }
-  
-  function scroll() {
-    var breakpoint, s = scrolled();
-
-    for ( breakpoint in registry ) {
-      if ( s < Number(breakpoint) ) {
-        registry[breakpoint].fire();
-      }
+    if ($context.is($window)) {
+      elementHeight = (window.innerHeight || $window.height());
+      scrollBottom = $document.height() - elementHeight - $window.scrollTop();
     }
+    else {
+      elementHeight = $context.prop('scrollHeight') - $context.prop('clientHeight');
+      scrollBottom = elementHeight - $context.scrollTop();
+    }
+
+    return (scrollBottom / elementHeight);
   }
 
-  function infinitescroll( breakpoint, callback ) {
+  function scroll(context) {
+    var $context = context === 'window' ? $window : $(context);
+
+    return function() {
+      var breakpoint, s = scrolled($context);
+
+      for ( breakpoint in registry[context] ) {
+        if ( s < Number(breakpoint) ) {
+          registry[context][breakpoint].fire();
+        }
+      }
+    };
+  }
+
+  function infinitescroll(breakpoint, callback, context) {
+    context = context || 'window';
     breakpoint = Number(breakpoint).toString();
 
-    var cb = registry[breakpoint];
+    var cb, $context = context === 'window' ? $window : $(context);
+
+    if (!registry[context]) {
+      registry[context] = {};
+    }
+
+    cb = registry[context][breakpoint];
 
     if (!cb) {
-      cb = registry[breakpoint] = new $.Callbacks();
+      cb = registry[context][breakpoint] = new $.Callbacks();
     }
 
     cb.add(callback);
 
     // First check
-    scroll();
+    scroll(context)();
+
+    $context.on('scroll', scroll(context));
   }
 
-  infinitescroll.remove = function( fn ) {
+  infinitescroll.remove = function(fn, context) {
+    context = context || 'window';
+
     var breakpoint, cb;
-    for ( breakpoint in registry ) {
-      cb = registry[breakpoint];
+
+    for ( breakpoint in registry[context] ) {
+      cb = registry[context][breakpoint];
       cb.remove(fn);
     }
   };
-
-  $window.on('scroll', scroll);
 
   return infinitescroll;
 });
