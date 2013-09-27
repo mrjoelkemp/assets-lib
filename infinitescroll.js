@@ -15,8 +15,8 @@ define(['jquery'], function($) {
       scrollBottom = $document.height() - elementHeight - $window.scrollTop();
     }
     else {
-      elementHeight = $context.prop('scrollHeight') - $context.prop('clientHeight');
-      scrollBottom = elementHeight - $context.scrollTop();
+      elementHeight = $context.prop('clientHeight');
+      scrollBottom = $context.prop('scrollHeight') - elementHeight - $context.scrollTop();
     }
 
     return (scrollBottom / elementHeight);
