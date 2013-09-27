@@ -1,53 +1,86 @@
 define(['jquery'], function($) {
   'use strict';
 
-  var $window = $(window), $document = $(document),
-  registry = {};
+  var $window = $(window),
+      $document = $(document),
+      scrollCache = {},
+      registry = {};
 
-  function scrolled() {
-    var scrollBottom = $document.height() -
-        (window.innerHeight || $window.height()) -
-        $window.scrollTop();
+  // Check if the user's viewport has scrolled based a defined breakpoint
+  function scrolled($context) {
+    var elementHeight, scrollBottom;
 
-    return (scrollBottom / (window.innerHeight || $window.height()));
-  }
-
-  function scroll() {
-    var breakpoint, s = scrolled();
-
-    for ( breakpoint in registry ) {
-      if ( s < Number(breakpoint) ) {
-        registry[breakpoint].fire();
-      }
+    if ($context.is($window)) {
+      elementHeight = (window.innerHeight || $window.height());
+      scrollBottom = $document.height() - elementHeight - $window.scrollTop();
     }
+    else {
+      elementHeight = $context.prop('scrollHeight') - $context.prop('clientHeight');
+      scrollBottom = elementHeight - $context.scrollTop();
+    }
+
+    return (scrollBottom / elementHeight);
   }
 
-  function infinitescroll( breakpoint, callback ) {
+  function scroll(context) {
+    var $context = context === 'window' ? $window : $(context);
+
+    return function() {
+      var breakpoint, s = scrolled($context);
+
+      for ( breakpoint in registry[context] ) {
+        if ( s < Number(breakpoint) ) {
+          registry[context][breakpoint].fire();
+        }
+      }
+    };
+  }
+
+  function infinitescroll(breakpoint, callback, context) {
+    context = context || 'window';
     breakpoint = Number(breakpoint).toString();
 
-    var cb = registry[breakpoint];
+    var cb, $context = context === 'window' ? $window : $(context);
+
+    if (!registry[context]) {
+      registry[context] = {};
+      scrollCache[context] = scroll(context);
+
+      $context.on('scroll', scrollCache[context]);
+    }
+
+    cb = registry[context][breakpoint];
 
     if (!cb) {
-      cb = registry[breakpoint] = new $.Callbacks();
+      cb = registry[context][breakpoint] = new $.Callbacks();
     }
 
     cb.add(callback);
 
     // First check
-    scroll();
+    scrollCache[context]();
   }
 
-  infinitescroll.remove = function( fn ) {
-    var breakpoint, cb;
-    for ( breakpoint in registry ) {
-      cb = registry[breakpoint];
+  infinitescroll.remove = function(fn, context) {
+    context = context || 'window';
+
+    var breakpoint, cb,
+        $context = context === 'window' ? $window : $(context);
+
+    for ( breakpoint in registry[context] ) {
+      cb = registry[context][breakpoint];
       cb.remove(fn);
     }
+
+    $context.off('scroll', scrollCache[context]);
+    delete scrollCache[context];
   };
 
-  infinitescroll.check = scroll;
+  infinitescroll.check = function(context) {
+    context = context || 'window';
 
-  $window.on('scroll', scroll);
+    scrollCache[context]();
+  };
 
   return infinitescroll;
 });
