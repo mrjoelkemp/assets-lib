@@ -2,10 +2,11 @@ define(['jquery'], function ($) {
   'use strict';
 
   function tooltip($context, message, classes) {
-    var $formItem = $context.closest('.form-item'),
-        $tooltip = $('<div>' + message + '</div>')
-                   .addClass(classes.join(' '))
-                   .appendTo($formItem);
+    var classes   = classes || [],
+        $formItem = $context.closest('.form-item'),
+        $tooltip  = $('<div>' + message + '</div>')
+                    .addClass(classes.join(' '))
+                    .appendTo($formItem);
 
     // Have to hard code 8 in here as it's the border-height of
     // the :after style that creates a triangle
