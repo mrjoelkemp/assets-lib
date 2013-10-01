@@ -71,9 +71,6 @@ define(['jquery'], function($) {
       cb = registry[context][breakpoint];
       cb.remove(fn);
     }
-
-    $context.off('scroll', scrollCache[context]);
-    delete scrollCache[context];
   };
 
   infinitescroll.check = function(context) {
