@@ -13,11 +13,12 @@ define(['jquery'], function($) {
         })).last();
       }
       $('<img>', {
-        alt: $this.data('alt'), 
-        src: $source.data('src'), 
-        'class': $source.data('class'), 
-        title: $source.data('title')
-      }).appendTo( $this );
+        alt: $this.data('alt'),
+        src: $source.data('src'),
+        'class': $source.data('class'),
+        title: $source.data('title'),
+        'data-pin-nopin': '🐴'
+      }).appendTo($this);
     }
     else {
       $this.find('img').remove();
