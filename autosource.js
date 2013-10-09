@@ -75,7 +75,7 @@ define(['jquery', 'nbd/Class'], function($, Class) {
      * @param {Object} search Object with term as the string to match
      * @memoizes
      */
-    filter : function filter( cache, search ) {
+    filter : function filter(cache, search) {
       this._filterMemo = this._filterMemo || {};
 
       var i, value,
@@ -87,12 +87,12 @@ define(['jquery', 'nbd/Class'], function($, Class) {
         term = term.toLocaleLowerCase();
       }
 
-      if ( this._filterMemo[term] ) { return this._filterMemo[term]; }
+      if (this._filterMemo[term]) { return this._filterMemo[term]; }
 
       for (i=0; i < cache.length && results.length < maxLength; ++i) {
         value = cache[i].value;
 
-        if ( this.options.caseInsensitive ) {
+        if (this.options.caseInsensitive) {
           value = value.toLocaleLowerCase();
         }
 
@@ -113,21 +113,22 @@ define(['jquery', 'nbd/Class'], function($, Class) {
         this.filter(merge.apply(null, this._local.map(this.callLocal, search)), search) :
         [];
 
-      if (local.length) {
-        callback( local );
-      }
-
-      // Run the remote searches
       if ( this._remotes.length ) {
+        if (local.length) { callback(local); }
+
+        // Run the remote searches
         $.when.apply($, this._remotes.map(this.callRemote, search))
         .then(merge)
         .then(mergeLocal.bind(this, search))
         .then(callback);
       }
+      else {
+        callback(local);
+      }
     }
   });
 
-  function autosource( config ) {
+  function autosource(config) {
     var Source = new AutoSource(config);
     return Source.source;
   }
