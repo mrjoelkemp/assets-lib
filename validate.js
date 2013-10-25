@@ -78,8 +78,8 @@ define(function() {
       message : "This field contains invalid characters. Please use only letters, numbers, dash or underscore characters."
     },
     "Password":{
-      test : test.bind(/^[^<> ]{6,32}$/),
-      message : "This field must be between 6 and 32 characters, and cannot contain < or >"
+      test : test.bind(/^\S{6,32}$/),
+      message : "This field must be between 6 and 32 characters"
     },
     "Address":{
       test : test.bind(/^[\w0-9A-Za-z\u00C0-\u00FF\u0100-\u0259\u0386\u0388-\u04E9\u05D0-\u06D3\u1E80-\u200F# \' \.\,\&\-]+$/),
@@ -222,7 +222,7 @@ define(function() {
     body = (body === null || body === undefined) ? '' : body;
 
     optional = rules.indexOf('optional');
-    
+
     if (optional > -1) {
       rules.splice(optional, optional + 1);
       return !body || rules.every(check, body);
