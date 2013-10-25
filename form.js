@@ -13,7 +13,7 @@ define([
     },
 
     // Default submit action submits form and handles response errors.
-    commit: function($context) {
+    commit: function(form, $context) {
       this
       .then(function() {
         return xhr({
