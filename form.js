@@ -43,7 +43,7 @@ define([
         var chain = new Promise();
 
         self.commit.call(chain, self, self.$context);
-        chain.resolve(null);
+        chain.resolve();
       });
     },
 
