@@ -12,26 +12,26 @@ define([
       this.$context = $context;
     },
 
-    // Default submit action submits form and handles response errors.
-    commit: function(form, $context) {
-      this
-      .then(function() {
-        return xhr({
-          url: $context.attr('action'),
-          type: $context.attr('method') || 'POST',
-          data: decompose($context.serializeArray())
-        });
-      })
-      .then(null, function failure(reason) {
-        // Actual Error
-        if (reason instanceof Error) {
-          console.error(reason);
-          return;
-        }
+    // The actual submission of the form. For the majority of simple forms, this should be
+    // all that needs to be overridden.
+    //
+    // Default implementation simply submits the form data to the form's defined endpoint.
+    submission: function($context, data) {
+      return this;
+    },
 
-        console.warn(reason);
-        return;
-      });
+    commit: function(chain, $context) {
+      return chain
+      .then(function(metadata) {
+        var chain = new Promise(),
+            then = chain.thenable(),
+            retval;
+
+        retval = this.submission.call(then, $context, metadata);
+        chain.resolve(retval === then ? xhr(metadata) : retval);
+
+        return chain;
+      }.bind(this));
     },
 
     onSubmit: function() {
@@ -40,10 +40,15 @@ define([
       this._bindSubmission();
 
       this.$context.on('submit', function() {
-        var chain = new Promise();
+        var chain = new Promise(),
+            formMetadata = {
+              url: self.$context.attr('action'),
+              type: self.$context.attr('type') || 'POST',
+              data: decompose(self.$context.serializeArray())
+            };
 
-        self.commit.call(chain, self, self.$context);
-        chain.resolve();
+        self.commit(chain, self.$context);
+        chain.resolve(formMetadata);
       });
     },
 
