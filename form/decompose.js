@@ -6,7 +6,7 @@ define(function() {
    * transforms it into a JSON structure apporpriate for sending
    * as data over and ajax request.
    *
-   * @param {Array} inputs - List objects with the form { name: value }
+   * @param {Array} inputs - List objects with the form { name: 'foo', value: 'bar' }
    *
    * @return {Object} obj - Map of input names to input values
    */
