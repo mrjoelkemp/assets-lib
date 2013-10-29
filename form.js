@@ -12,22 +12,31 @@ define([
       this.$context = $context;
     },
 
-    // The actual submission of the form. For the majority of simple forms, this should be
-    // all that needs to be overridden.
-    //
-    // Default implementation simply submits the form data to the form's defined endpoint.
-    submission: function($context, data) {
+    /**
+     * The actual submission of the form. For the majority of simple forms, this should be
+     * all that needs to be overridden.
+     *
+     * Default implementation simply submits the form data to the form's defined endpoint.
+     */
+    submission: function(metadata) {
       return this;
     },
 
-    commit: function(chain, $context) {
+    /**
+     * Private function that handles the steps necessary to submit the form. This should be
+     * overridden in subclasses.
+     *
+     * The base implementation calls the submission function to determine whether to return
+     * submission's return value or ajax submit the form.
+     */
+    _commit: function(chain) {
       return chain
       .then(function(metadata) {
         var chain = new Promise(),
             then = chain.thenable(),
             retval;
 
-        retval = this.submission.call(then, $context, metadata);
+        retval = this.submission.call(then, metadata);
         chain.resolve(retval === then ? xhr(metadata) : retval);
 
         return chain;
@@ -47,7 +56,7 @@ define([
               data: decompose(self.$context.serializeArray())
             };
 
-        self.commit(chain, self.$context);
+        self._commit(chain, self.$context);
         chain.resolve(formMetadata);
       });
     },
