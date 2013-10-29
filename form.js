@@ -13,12 +13,13 @@ define([
     },
 
     /**
-     * The actual submission of the form. For the majority of simple forms, this should be
-     * all that needs to be overridden.
+     * Inner Submission process. Should be limited to the forms specific behaviors that are
+     * dependent on pre- and post- submission of the form. For the majority of simple forms,
+     * this should be all that needs to be overridden.
      *
      * Default implementation simply submits the form data to the form's defined endpoint.
      */
-    submission: function(metadata) {
+    commit: function(metadata) {
       return this;
     },
 
@@ -29,14 +30,14 @@ define([
      * The base implementation calls the submission function to determine whether to return
      * submission's return value or ajax submit the form.
      */
-    _commit: function(chain) {
+    _submit: function(chain) {
       return chain
       .then(function(metadata) {
         var chain = new Promise(),
             then = chain.thenable(),
             retval;
 
-        retval = this.submission.call(then, metadata);
+        retval = this.commit.call(then, metadata);
         chain.resolve(retval === then ? xhr(metadata) : retval);
 
         return chain;
@@ -56,7 +57,7 @@ define([
               data: decompose(self.$context.serializeArray())
             };
 
-        self._commit(chain, self.$context);
+        self._submit(chain);
         chain.resolve(formMetadata);
       });
     },
