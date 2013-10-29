@@ -7,9 +7,47 @@ define([
 ], function(Class, Promise, decompose, xhr) {
   'use strict';
 
-  var Form = Class.extend({
+  var normalizeSubmitter = function(e) {
+    switch (e.which) {
+      // Left mouse
+      case 1:
+      // Enter
+      case 13:
+      // Spacebar
+      case 32:
+        this.$context.submit();
+        break;
+      default:
+        break;
+    }
+  },
+
+  initChain = function() {
+    var chain = new Promise(),
+        formMetadata = {
+          url: this.$context.attr('action'),
+          type: this.$context.attr('type') || 'POST',
+          data: decompose(this.$context.serializeArray())
+        };
+
+    this._submit(chain);
+    chain.resolve(formMetadata);
+  },
+
+  Form = Class.extend({
     init: function($context) {
       this.$context = $context;
+
+      // Internal bindings so that be can unbind later
+      this._normalizeSubmitter = normalizeSubmitter.bind(this);
+      this._initChain = initChain.bind(this);
+
+      this._bindSubmission();
+    },
+
+    destroy: function() {
+      this._unbindSubmission();
+      this.$context = null;
     },
 
     /**
@@ -44,41 +82,16 @@ define([
       }.bind(this));
     },
 
-    onSubmit: function() {
-      var self = this;
-
-      this._bindSubmission();
-
-      this.$context.on('submit', function() {
-        var chain = new Promise(),
-            formMetadata = {
-              url: self.$context.attr('action'),
-              type: self.$context.attr('type') || 'POST',
-              data: decompose(self.$context.serializeArray())
-            };
-
-        self._submit(chain);
-        chain.resolve(formMetadata);
-      });
+    _bindSubmission: function() {
+      this.$context
+      .on('click keydown', '.form-submit:not([type=submit])', this._normalizeSubmitter)
+      .on('submit', this._initChain);
     },
 
-    _bindSubmission: function() {
-      var self = this;
-
-      this.$context.on('click keydown', '.form-submit:not([type=submit])', function(e) {
-        switch (e.which) {
-          // Left mouse
-          case 1:
-          // Enter
-          case 13:
-          // Spacebar
-          case 32:
-            self.$context.submit();
-            break;
-          default:
-            break;
-        }
-      });
+    _unbindSubmission: function() {
+      this.$context
+      .off('click keydown', '.form-submit:not([type=submit])', this._normalizeSubmitter)
+      .off('submit', this._initChain);
     }
   });
 
