@@ -8,6 +8,8 @@ define([
   'use strict';
 
   var normalizeSubmitter = function(e) {
+    e.preventDefault();
+
     switch (e.which) {
       // Left mouse
       case 1:
