@@ -8,8 +8,6 @@ define([
   'use strict';
 
   var normalizeSubmitter = function(e) {
-    e.preventDefault();
-
     switch (e.which) {
       // Left mouse
       case 1:
@@ -24,7 +22,9 @@ define([
     }
   },
 
-  initChain = function() {
+  initChain = function(e) {
+    e.preventDefault();
+
     var chain = new Promise(),
         formMetadata = {
           url: this.$context.attr('action'),
@@ -40,7 +40,7 @@ define([
     init: function($context) {
       this.$context = $context;
 
-      // Internal bindings so that be can unbind later
+      // Internal bindings so that we can unbind later
       this._normalizeSubmitter = normalizeSubmitter.bind(this);
       this._initChain = initChain.bind(this);
 
