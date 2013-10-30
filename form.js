@@ -15,7 +15,7 @@ define([
       case 13:
       // Spacebar
       case 32:
-        this.$context.submit();
+        this.$form.submit();
         break;
       default:
         break;
@@ -27,9 +27,9 @@ define([
 
     var chain = new Promise(),
         formMetadata = {
-          url: this.$context.attr('action'),
-          type: this.$context.attr('type') || 'POST',
-          data: decompose(this.$context.serializeArray())
+          url: this.$form.attr('action'),
+          type: this.$form.attr('type') || 'POST',
+          data: decompose(this.$form.serializeArray())
         };
 
     this._submit(chain);
@@ -38,7 +38,7 @@ define([
 
   Form = Class.extend({
     init: function($context) {
-      this.$context = $context;
+      this.$form = $context;
 
       // Internal bindings so that we can unbind later
       this._normalizeSubmitter = normalizeSubmitter.bind(this);
@@ -49,7 +49,7 @@ define([
 
     destroy: function() {
       this._unbindSubmission();
-      this.$context = null;
+      this.$form = null;
     },
 
     /**
@@ -85,13 +85,13 @@ define([
     },
 
     _bindSubmission: function() {
-      this.$context
+      this.$form
       .on('click keydown', '.form-submit:not([type=submit])', this._normalizeSubmitter)
       .on('submit', this._initChain);
     },
 
     _unbindSubmission: function() {
-      this.$context
+      this.$form
       .off('click keydown', '.form-submit:not([type=submit])', this._normalizeSubmitter)
       .off('submit', this._initChain);
     }
