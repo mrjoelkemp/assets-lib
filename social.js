@@ -52,7 +52,7 @@ define(['jquery'], function($) {
     },
 
     stumbledupon : function($context) {
-      if ($('.viral-button-stumble', $context).length) {
+      if ($('.viral-button-stumble', $context).length && window.location.protocol === 'https:') {
         require(['//platform.stumbleupon.com/1/widgets.js'], function() {
           STMBLPN.processWidgets();
         });
