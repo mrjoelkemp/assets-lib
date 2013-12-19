@@ -17,6 +17,10 @@ define(['jquery'], function($) {
       })).last();
     }
 
+    // using attr here because .data() doesn't add the attribute
+    // and we want to select based on a Selectors API compliant selector
+    $this.attr('data-rendered', 'rendered');
+
     $('<img>', {
       alt: $this.data('alt'),
       src: $source.data('src'),
@@ -27,7 +31,7 @@ define(['jquery'], function($) {
   };
 
   return ($.fn.picturefill = function() {
-    this.find('div[data-picture]').each(mkimg);
+    this.find('div[data-picture]:not([data-rendered])').each(mkimg);
     return this;
   });
 });
