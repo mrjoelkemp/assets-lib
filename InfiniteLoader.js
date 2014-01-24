@@ -95,13 +95,12 @@ define([
       this._firstLoad = false;
 
       this.trigger(empty ? 'empty' : 'loaded', response);
-      this.loaded(response, empty);
-      return response;
+      return this.loaded(response, empty);
     },
 
-    _resetLoadingState: function(response) {
+    _resetLoadingState: function() {
       this._isLoading = false;
-      this.trigger('after', response);
+      this.trigger('after');
     },
 
     load: function() {
