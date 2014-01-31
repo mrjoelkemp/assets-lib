@@ -17,7 +17,7 @@ define([
     _firstLoad: true,
     _hasMore: true,
     _isLoading: false,
-    breakpoint: 0.8,
+    breakpoint: 1.1,
     offset: 0,
     data: {},
     url: window.location.href,
@@ -122,7 +122,8 @@ define([
       })
       .then(this._trackLoadingState.bind(this), this._handleXhrFailure.bind(this))
       .then(this._handleResponseLoaded.bind(this, originalOffset))
-      .then(this._resetLoadingState.bind(this));
+      .then(this._resetLoadingState.bind(this))
+      .then(this.infinitescroll.check.bind(this, this.context));
     },
 
     reload: function(offset, data, url) {
