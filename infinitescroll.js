@@ -71,10 +71,12 @@ define(['jquery'], function($) {
 
       var retval = callback.apply(null, arguments);
 
-      if (typeof retval.then === 'function') {
+      if (retval && typeof retval.then === 'function') {
         retval.then(function() {
           onHit.blocking = false;
           scrollCache[context]();
+        }, function(err) {
+          console.warn(err);
         });
       }
       else {
