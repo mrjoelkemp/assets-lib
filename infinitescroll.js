@@ -6,6 +6,8 @@ define(['jquery'], function($) {
       scrollCache = {},
       registry = {};
 
+  function callIt(fn) { fn(); }
+
   // Check if the user's viewport has scrolled based a defined breakpoint
   function scrolled($context) {
     var elementHeight, scrollBottom;
@@ -28,15 +30,20 @@ define(['jquery'], function($) {
     return function() {
       var breakpoint, s = scrolled($context);
 
-      for ( breakpoint in registry[context] ) {
-        if ( s < Number(breakpoint) ) {
-          registry[context][breakpoint].fire();
+      for (breakpoint in registry[context]) {
+        if (s <= Number(breakpoint)) {
+          registry[context][breakpoint].wrapped.forEach(callIt);
         }
       }
     };
   }
 
   function infinitescroll(breakpoint, callback, context) {
+    if (typeof breakpoint === "function") {
+      context = callback;
+      callback = breakpoint;
+      breakpoint = 1;
+    }
     context = context || 'window';
     breakpoint = Number(breakpoint).toString();
 
@@ -52,10 +59,34 @@ define(['jquery'], function($) {
     cb = registry[context][breakpoint];
 
     if (!cb) {
-      cb = registry[context][breakpoint] = new $.Callbacks();
+      cb = registry[context][breakpoint] = {
+        wrapped: [],
+        original: []
+      };
     }
 
-    cb.add(callback);
+    function onHit() {
+      if (onHit.blocking) { return; }
+      onHit.blocking = true;
+
+      var retval = callback.apply(null, arguments);
+
+      if (retval && typeof retval.then === 'function') {
+        retval.then(function() {
+          onHit.blocking = false;
+          scrollCache[context]();
+        }, function(err) {
+          console.warn(err);
+        });
+      }
+      else {
+        onHit.blocking = false;
+      }
+    }
+
+    // store both the original and wrapped so it can be removed
+    cb.original.push(callback);
+    cb.wrapped.push(onHit);
 
     // First check
     scrollCache[context]();
@@ -64,12 +95,16 @@ define(['jquery'], function($) {
   infinitescroll.remove = function(fn, context) {
     context = context || 'window';
 
-    var breakpoint, cb,
-        $context = context === 'window' ? $window : $(context);
+    var breakpoint, cb, i;
 
-    for ( breakpoint in registry[context] ) {
+    for (breakpoint in registry[context]) {
       cb = registry[context][breakpoint];
-      cb.remove(fn);
+      // search for the original function
+      i = cb.original.indexOf(fn);
+      if (~i) {
+        cb.original.splice(i, 1);
+        cb.wrapped.splice(i, 1);
+      }
     }
   };
 
