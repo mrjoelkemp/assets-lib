@@ -28,7 +28,7 @@ define([
     var chain = new Promise(),
         formMetadata = {
           url: this.$form.attr('action'),
-          type: this.$form.attr('type') || 'POST',
+          type: this.$form.attr('method') || 'POST',
           data: decompose(this.$form.serializeArray())
         };
 
