@@ -111,19 +111,22 @@ define([
       this._isLoading = true;
       this.trigger('loading');
 
-      var data = extend({}, this.data),
-          originalOffset = this.offset;
-
-      data[this.offsetKey] = originalOffset;
-
-      return this.xhr({
-        url: this.url,
-        data: data
-      })
+      return this.xhr(this.xhrOptions())
       .then(this._trackLoadingState.bind(this), this._handleXhrFailure.bind(this))
-      .then(this._handleResponseLoaded.bind(this, originalOffset))
+      .then(this._handleResponseLoaded.bind(this, this.offset))
       .then(this._resetLoadingState.bind(this))
       .then(this.infinitescroll.check.bind(this, this.context));
+    },
+
+    xhrOptions: function() {
+      var data = extend({}, this.data);
+
+      data[this.offsetKey] = this.offset;
+
+      return {
+        url: this.url,
+        data: data
+      };
     },
 
     reload: function(offset, data, url) {
