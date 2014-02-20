@@ -1,4 +1,7 @@
-define(['jquery'], function($) {
+define([
+  'jquery',
+  'log'
+], function($, log) {
   'use strict';
 
   var $window = $(window),
@@ -76,7 +79,9 @@ define(['jquery'], function($) {
           onHit.blocking = false;
           scrollCache[context]();
         }, function(err) {
-          console.warn(err);
+          if (err instanceof Error) {
+            log.warn(err);
+          }
         });
       }
       else {
