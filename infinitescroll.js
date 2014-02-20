@@ -1,4 +1,7 @@
-define(['jquery', 'log'], function($, log) {
+define([
+  'jquery',
+  'log'
+], function($, log) {
   'use strict';
 
   var $window = $(window),
