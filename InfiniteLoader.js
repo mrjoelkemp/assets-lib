@@ -13,16 +13,14 @@ define([
       this.context = context || 'window';
       this.resetParams(offset);
     },
-
-    _firstLoad: true,
     _hasMore: true,
     _isLoading: false,
     breakpoint: 1.1,
     offset: 0,
     data: {},
     url: window.location.href,
-    infinitescroll: infinitescroll,
-    xhr: xhr,
+    _infinitescroll: infinitescroll,
+    _xhr: xhr,
 
     hasMoreResults: function(response) {
       throw "InfiniteLoader requires a 'hasMoreResults(response)' function. Please extend and implement.";
@@ -59,7 +57,7 @@ define([
         return;
       }
 
-      this.infinitescroll.remove(this.boundFunction, this.context);
+      this._infinitescroll.remove(this.boundFunction, this.context);
       this.boundFunction = false;
     },
 
@@ -70,7 +68,7 @@ define([
 
       this.boundFunction = this.load.bind(this);
 
-      this.infinitescroll(this.breakpoint, this.boundFunction, this.context);
+      this._infinitescroll(this.breakpoint, this.boundFunction, this.context);
     },
 
     offsetKey: 'offset',
@@ -91,16 +89,12 @@ define([
     },
 
     _handleResponseLoaded: function(originalOffset, response) {
-      var empty = originalOffset === 0 && this._firstLoad && !this._hasMore;
-      this._firstLoad = false;
-
-      this.trigger(empty ? 'empty' : 'loaded', response);
-      return this.loaded(response, empty);
+      return this.loaded(response, originalOffset);
     },
 
     _resetLoadingState: function() {
       this._isLoading = false;
-      this.trigger('after');
+      this.trigger('success');
     },
 
     load: function() {
@@ -109,16 +103,16 @@ define([
       }
 
       this._isLoading = true;
-      this.trigger('loading');
+      this.trigger('before');
 
-      return this.xhr(this.xhrOptions())
+      return this._xhr(this._xhrOptions())
       .then(this._trackLoadingState.bind(this), this._handleXhrFailure.bind(this))
       .then(this._handleResponseLoaded.bind(this, this.offset))
       .then(this._resetLoadingState.bind(this))
-      .then(this.infinitescroll.check.bind(this, this.context));
+      .then(this._infinitescroll.check.bind(this, this.context));
     },
 
-    xhrOptions: function() {
+    _xhrOptions: function() {
       var data = extend({}, this.data);
 
       data[this.offsetKey] = this.offset;
@@ -132,7 +126,6 @@ define([
     reload: function(offset, data, url) {
       this.resetParams(offset, data, url);
       this._hasMore = true;
-      this._firstLoad = true;
       return this.load();
     }
   }, {
