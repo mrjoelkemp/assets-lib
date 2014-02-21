@@ -13,12 +13,13 @@ define([
       this.context = context || 'window';
       this.resetParams(offset);
     },
-    _hasMore: true,
-    _isLoading: false,
-    breakpoint: 1.1,
+
+    breakpoint: 1,
+    offsetKey: 'offset',
     offset: 0,
     data: {},
-    url: window.location.href,
+    url: undefined,
+
     _infinitescroll: infinitescroll,
     _xhr: xhr,
 
@@ -30,14 +31,15 @@ define([
       throw "InfiniteLoader requires a 'getNextOffset(response)' function. Please extend and implement.";
     },
 
-    loaded: function(response, empty) {
-      throw "InfiniteLoader requires a 'loaded(response, empty)' function. Please extend and implement.";
+    loaded: function(response) {
+      throw "InfiniteLoader requires a 'loaded(response)' function. Please extend and implement.";
     },
 
     resetParams: function(offset, data, url) {
-      this.offset = offset || 0;
-      this.data = data || {};
-      this.url = url || window.location.href;
+      delete this.offset;
+      delete this.data;
+      delete this.url;
+      return this.setParams(offset, data, url);
     },
 
     setParams: function(offset, data, url) {
@@ -50,71 +52,54 @@ define([
       if (url != null) {
         this.url = url;
       }
-    },
-
-    unbind: function() {
-      if (!this.boundFunction) {
-        return;
-      }
-
-      this._infinitescroll.remove(this.boundFunction, this.context);
-      this.boundFunction = false;
+      return this;
     },
 
     bind: function() {
-      if (this.boundFunction) {
+      if (this._boundLoad) {
         return;
       }
 
-      this.boundFunction = this.load.bind(this);
-
-      this._infinitescroll(this.breakpoint, this.boundFunction, this.context);
+      this._boundLoad = this.load.bind(this);
+      this._infinitescroll(this.breakpoint, this._boundLoad, this.context);
+      return this;
     },
 
-    offsetKey: 'offset',
+    unbind: function() {
+      if (!this._boundLoad) {
+        return;
+      }
 
-    _trackLoadingState: function(response) {
-      this._hasMore = this.hasMoreResults(response);
-      this.offset = this.getNextOffset(response);
-      return response;
-    },
-
-    _handleXhrFailure: function(response) {
-      this._isLoading = false;
-      this._hasMore = false;
-      this.offset = 0;
-
-      this.trigger('error', response);
-      throw response;
-    },
-
-    _handleResponseLoaded: function(originalOffset, response) {
-      return this.loaded(response, originalOffset);
-    },
-
-    _resetLoadingState: function() {
-      this._isLoading = false;
-      this.trigger('success');
+      this._infinitescroll.remove(this._boundLoad, this.context);
+      delete this._boundLoad;
+      return this;
     },
 
     load: function() {
-      if (this._isLoading || !this._hasMore) {
-        return;
-      }
-
-      this._isLoading = true;
       this.trigger('before');
 
-      return this._xhr(this._xhrOptions())
-      .then(this._trackLoadingState.bind(this), this._handleXhrFailure.bind(this))
-      .then(this._handleResponseLoaded.bind(this, this.offset))
-      .then(this._resetLoadingState.bind(this))
-      .then(this._infinitescroll.check.bind(this, this.context));
+      var request = this._xhr(this._xhrOptions()),
+      // Need to split up the chain at this point
+      chain = request.then(this.loaded.bind(this));
+
+      // Event out only the relevant events
+      chain.then(
+        this.trigger.bind(this, 'success'),
+        this.trigger.bind(this, 'error')
+      );
+
+      return request
+      .then(this._trackState.bind(this))
+      .then(function() {
+        // Rejoin original chain
+        return chain;
+      });
     },
 
     _xhrOptions: function() {
-      var data = extend({}, this.data);
+      var data = typeof this.data === 'function' ? this.data() : this.data;
 
+      data = extend({}, data);
       data[this.offsetKey] = this.offset;
 
       return {
@@ -123,16 +108,26 @@ define([
       };
     },
 
+    _trackState: function(response) {
+      this.offset = this.getNextOffset(response);
+
+      if (!this.hasMoreResults(response)) {
+        throw 'No more results';
+      }
+      return response;
+    },
+
     reload: function(offset, data, url) {
       this.resetParams(offset, data, url);
-      this._hasMore = true;
-      return this.load();
+      this.unbind();
+      // Make the initial request after the reset
+      var request = this.load();
+      request.then(this.bind.bind(this));
+      return request;
     }
   }, {
     init: function(context, offset) {
-      var self = construct.apply(this, arguments);
-      self.bind();
-      return self;
+      return construct.apply(this, arguments).bind();
     }
   })
   .mixin(pubsub);
