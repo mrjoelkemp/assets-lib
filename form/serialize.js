@@ -1,6 +1,12 @@
 define(['nbd/util/extend'], function(extend) {
   'use strict';
 
+  var textlikes = [
+    'text',
+    'password'
+  ],
+      serialize;
+
   function textlike(selector, $context) {
     $context = $context.is(selector) ?
                $context :
@@ -22,14 +28,17 @@ define(['nbd/util/extend'], function(extend) {
     .reduce(extend, {});
   }
 
-  var serialize = {
+  serialize = {
     form: function($context) {},
-    text: textlike.bind(null, 'input[type="text"]'),
     textarea: textlike.bind(null, 'textarea'),
     radio: function() {},
     checkbox: function() {},
     select: function() {}
   };
+
+  textlikes.forEach(function(type) {
+    serialize[type] = textlike.bind(null, 'input[type="' + type + '"]');
+  });
 
   return serialize;
 });
