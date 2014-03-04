@@ -6,11 +6,15 @@ define(['jquery', 'nbd/trait/promise'], function($, Promise) {
   * This is so we can get proper error reporting
   */
   return function() {
-    var p = new Promise(),
-    req = $.ajax.apply($, arguments);
+    var thenable,
+        p = new Promise(),
+        req = $.ajax.apply($, arguments);
 
     p.resolve(req);
-    return p.thenable();
+
+    thenable = p.thenable();
+    thenable.abort = req.abort;
+    return thenable;
   };
 
 });

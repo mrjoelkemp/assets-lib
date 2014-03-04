@@ -65,6 +65,12 @@ define([
       return this;
     },
 
+    _stop: function() {
+      if (this._request) {
+        this._request.abort();
+      }
+    },
+
     unbind: function() {
       if (!this._boundLoad) {
         return;
@@ -78,9 +84,9 @@ define([
     load: function() {
       this.trigger('before');
 
-      var request = this._xhr(this._xhrOptions()),
+      this._request = this._xhr(this._xhrOptions());
       // Need to split up the chain at this point
-      chain = request.then(this.loaded.bind(this));
+      var chain = this._request.then(this.loaded.bind(this));
 
       // Event out only the relevant events
       chain.then(
@@ -88,7 +94,7 @@ define([
         this.trigger.bind(this, 'error')
       );
 
-      return request
+      return this._request
       .then(this._trackState.bind(this))
       .then(function() {
         // Rejoin original chain
@@ -119,6 +125,7 @@ define([
 
     reload: function(offset, data, url) {
       this.resetParams(offset, data, url);
+      this._stop();
       this.unbind();
       // Make the initial request after the reset
       var request = this.load();
