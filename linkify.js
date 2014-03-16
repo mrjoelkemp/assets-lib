@@ -1,43 +1,42 @@
 define(function() {
   'use strict';
 
-    //$url = trim( $url );
+  var DEFAULT_PROTOCOL = 'http',
+      URL_REGEX = /(?:^|\s)(?:[^"\'\s\n\r -])?((?:http(?:s)?\:\/\/|(?:[^\/])?www\.)[^<"\r\n\s]+)/gi,
+      TRAILING_PERIOD_REGEX = /\.$/,
+      SPACE_START_REGEX = /^[\s\r\n]/;
 
-    //if ( strpos( $url, "//" ) === 0 ) {
-      //$url = "{$protocol}:{$url}";
-    //}
-    //elseif ( strpos( $url, $protocol ) !== 0 ) {
-      //$url = $protocol . '://' . $url;
-    //}
+  function prefix(url, protocol) {
+    protocol = protocol || DEFAULT_PROTOCOL;
 
-    //return $url;
-    //
-    //$url      = Core_Utils::prefixUrl($matches[0]);
-    //$url_text = $matches[0];
-    //$extra    = '';
+    if (url.indexOf('//') === 0) {
+      url = protocol + ':' + url;
+    }
+    else if (url.indexOf(protocol) !== 0) {
+      url = protocol + '://' + url;
+    }
 
-    //// get rid of trailing period if caught by regex
-    //if (preg_match('/\.$/',$url)) {
-      //$url_text = rtrim($url_text, '.');
-      //$url      = rtrim($url, '.');
-      //$extra = '.';
-    //}
+    return url;
+  }
 
-    //$new_url  = '<a href="'.trim($url).'">'.trim($url_text).'</a>'.$extra;
-
-    //$new_url  = ( preg_match( '/^[\s\r\n]/', $url_text ) ) ? ' '.$new_url : $new_url; // space vs empty
-
-    //return $new_url;
-
-  var URL_REGEX = /(?:\A|\s)(?:[^"\'\s\n\r -])?((?:http(?:s)?\:\/\/|(?:[^\/])?www\.)[^<"\r\n\s]+)/gi;
-
-  return function(rawText) {
+  return function(rawText, protocol) {
     return rawText.replace(URL_REGEX, function(url) {
-      url = url.trim();
+      var urlText = url.trim(),
+          extra;
 
-      var wrappedText = ' <a href="' + url + '" target="_blank">' + url + '</a>';
+      if (TRAILING_PERIOD_REGEX.test(urlText)) {
+        urlText = urlText.slice(0, -1);
+        extra = '.';
+      }
 
-      return wrappedText;
+      var prefixedUrl = prefix(urlText, protocol),
+          wrappedText = '<a href="' + prefixedUrl + '" target="_blank">' + urlText + '</a>';
+
+      if (extra) {
+        wrappedText += extra;
+      }
+
+      return SPACE_START_REGEX.test(url) ? ' ' + wrappedText : wrappedText;
     });
   };
 });
