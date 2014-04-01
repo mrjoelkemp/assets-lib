@@ -20,18 +20,17 @@ define([
   }
 
   var commitText = function(e, options) {
-    var text;
-    Array.prototype.some.call(this.childNodes, function(node) {
-      if (node.nodeType === Element.TEXT_NODE) {
-        return !!(text = node);
-      }
+    var texts = Array.prototype.filter.call(this.childNodes, function(node) {
+      return node.nodeType === Element.TEXT_NODE;
     });
 
     e.preventDefault();
-    if (!text) { return; }
+    if (!texts.length) { return; }
 
-    this.insertBefore(render(text.textContent.trim(), options && options.template), text);
-    this.removeChild(text);
+    texts.forEach(function(text) {
+      this.insertBefore(render(text.textContent.trim(), options && options.template), text);
+      this.removeChild(text);
+    }, this);
     $(this).trigger('change');
   },
 
