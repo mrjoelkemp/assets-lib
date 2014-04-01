@@ -4,7 +4,7 @@ define(['jquery'], function($) {
   'use strict';
 
   var api = {
-    init : function($context) {
+    init: function($context) {
       this.twitter($context);
       this.facebook($context);
       this.linkedin($context);
@@ -12,31 +12,31 @@ define(['jquery'], function($) {
       this.stumbledupon($context);
     },
 
-    twitter : function($context) {
+    twitter: function($context) {
       if ($('.viral-button-twitter', $context).length) {
         require(['//platform.twitter.com/widgets.js'], function() {
-          twttr.widgets.load();
+          if (typeof twttr !== 'undefined') { twttr.widgets.load(); }
         });
       }
     },
 
-    linkedin : function($context) {
+    linkedin: function($context) {
       if ($('.viral-button-linkedin', $context).length) {
         require(['//platform.linkedin.com/in.js'], function() {
-          if (IN && IN.parse) { IN.parse(); }
+          if (typeof IN !== 'undefined' && IN.parse) { IN.parse(); }
         });
       }
     },
 
-    facebook : function($context) {
+    facebook: function($context) {
       if ($('.fb-like', $context).length) {
         require(['//connect.facebook.net/en_US/all.js#xfbml=1'], function() {
-          FB.XFBML.parse();
+          if (typeof FB !== 'undefined' && FB.XFBML) { FB.XFBML.parse(); }
         });
       }
     },
 
-    pinterest : function pinterest($context) {
+    pinterest: function pinterest($context) {
       $('.viral-button-pinterest', $context).on('click', function() {
         require(['//assets.pinterest.com/js/pinmarklet.js'], function() {
           if (pinterest.PIN) {
@@ -51,10 +51,10 @@ define(['jquery'], function($) {
       });
     },
 
-    stumbledupon : function($context) {
+    stumbledupon: function($context) {
       if ($('.viral-button-stumble', $context).length && window.location.protocol === 'https:') {
         require(['//platform.stumbleupon.com/1/widgets.js'], function() {
-          STMBLPN.processWidgets();
+          if (typeof STMBLPN !== 'undefined') { STMBLPN.processWidgets(); }
         });
       }
     }
