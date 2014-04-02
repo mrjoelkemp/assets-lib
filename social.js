@@ -15,7 +15,10 @@ define(['jquery'], function($) {
     twitter: function($context) {
       if ($('.viral-button-twitter', $context).length) {
         require(['//platform.twitter.com/widgets.js'], function() {
-          if (typeof twttr !== 'undefined') { twttr.widgets.load(); }
+          try {
+            twttr.widgets.load();
+          }
+          catch (e) {}
         });
       }
     },
@@ -39,6 +42,10 @@ define(['jquery'], function($) {
     pinterest: function pinterest($context) {
       $('.viral-button-pinterest', $context).on('click', function() {
         require(['//assets.pinterest.com/js/pinmarklet.js'], function() {
+          if (typeof pinterest === 'undefined') {
+            return;
+          }
+
           if (pinterest.PIN) {
             pinterest.PIN.f.init();
             return;
