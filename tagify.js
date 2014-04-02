@@ -46,7 +46,7 @@ define([
       this.childNodes[anchorOffset - 1].remove();
       $(this).trigger('change');
     }
-    else if (anchor.nodeType === Element.TEXT_NODE && anchorOffset === 0) {
+    else if (anchor.nodeType === Node.TEXT_NODE && anchorOffset === 0) {
       if (anchor.previousSibling) {
         anchor.previousSibling.remove();
         $(this).trigger('change');
