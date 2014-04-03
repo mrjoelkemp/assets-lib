@@ -20,16 +20,23 @@ define([
   }
 
   var commitText = function(e, options) {
-    var texts = Array.prototype.filter.call(this.childNodes, function(node) {
-      return node.nodeType === Element.TEXT_NODE;
+    var nonText = 0,
+    texts = Array.prototype.filter.call(this.childNodes, function(node) {
+      if (/\bjs-tag\b/.test(node.className)) {
+        nonText++;
+      }
+      return node.nodeType === Node.TEXT_NODE;
     });
 
-    e.preventDefault();
-    if (!texts.length) { return; }
+    if (e) {
+      e.preventDefault();
+    }
+    if (!texts.length || nonText >= options.limit) { return; }
 
-    texts.forEach(function(text) {
+    texts.some(function(text) {
       this.insertBefore(render(text.textContent.trim(), options && options.template), text);
       this.removeChild(text);
+      return ++nonText >= options.limit;
     }, this);
     $(this).trigger('change');
   },
@@ -67,7 +74,6 @@ define([
     })
     .css({
       height: 'auto',
-      whiteSpace: 'pre-wrap',
       minHeight: $context.height()
     })
     .on({
@@ -77,6 +83,9 @@ define([
       keydown: function(event) {
         var fn;
         return (fn = keydownMap[event.which]) && fn.call(this, event, options);
+      },
+      blur: function() {
+        return commitText.call(this, null, options);
       },
       change: function() {
         var value = $(this).find('.js-tag').toArray()
