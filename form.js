@@ -1,10 +1,11 @@
 // Top-level form module for programmictally assembling form behaviors
 define([
   'nbd/Class',
+  'nbd/trait/pubsub',
   'nbd/trait/promise',
   'lib/form/decompose',
   'lib/xhr'
-], function(Class, Promise, decompose, xhr) {
+], function(Class, pubsub, Promise, decompose, xhr) {
   'use strict';
 
   var normalizeSubmitter = function(e) {
@@ -71,6 +72,8 @@ define([
      * submission's return value or ajax submit the form.
      */
     _submit: function(chain) {
+      this.trigger('before');
+
       return chain
       .then(function(metadata) {
         var chain = new Promise(),
@@ -80,6 +83,7 @@ define([
         retval = this.commit.call(then, metadata);
         chain.resolve(retval === then ? xhr(metadata) : retval);
 
+        chain.then(this.trigger.bind(this, 'success'), this.trigger.bind(this, 'error'));
         return chain;
       }.bind(this));
     },
@@ -95,7 +99,8 @@ define([
       .off('click keydown', '.form-submit:not([type=submit])', this._normalizeSubmitter)
       .off('submit', this._initChain);
     }
-  });
+  })
+  .mixin(pubsub);
 
   return Form;
 });
