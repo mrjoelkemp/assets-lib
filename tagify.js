@@ -72,10 +72,6 @@ define([
       placeholder: $context[0].placeholder,
       class: $context[0].className
     })
-    .css({
-      height: 'auto',
-      minHeight: $context.height()
-    })
     .on({
       'input keypress': function() {
         $(this).toggleClass('has-value', !!this.textContent);
