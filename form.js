@@ -24,7 +24,7 @@ define([
   },
 
   initChain = function(e) {
-    e.preventDefault();
+    if (e) { e.preventDefault(); }
 
     var chain = new Promise(),
         formMetadata = {
@@ -33,8 +33,19 @@ define([
           data: decompose(this.$form.serializeArray())
         };
 
-    this._submit(chain);
     chain.resolve(formMetadata);
+    return this._submit(chain);
+  },
+
+  innerChain = function(metadata) {
+    var chain = new Promise(),
+    then = chain.thenable(),
+    retval;
+
+    retval = this.commit.call(then, metadata);
+    chain.resolve(retval === then ? xhr(metadata) : retval);
+
+    return chain;
   },
 
   Form = Class.extend({
@@ -64,6 +75,10 @@ define([
       return this;
     },
 
+    submit: function() {
+      return this._initChain();
+    },
+
     /**
      * Private function that handles the steps necessary to submit the form. This should be
      * overridden in subclasses.
@@ -74,18 +89,10 @@ define([
     _submit: function(chain) {
       this.trigger('before');
 
-      return chain
-      .then(function(metadata) {
-        var chain = new Promise(),
-            then = chain.thenable(),
-            retval;
+      chain = chain.then(innerChain.bind(this));
+      chain.then(this.trigger.bind(this, 'success'), this.trigger.bind(this, 'error'));
 
-        retval = this.commit.call(then, metadata);
-        chain.resolve(retval === then ? xhr(metadata) : retval);
-
-        chain.then(this.trigger.bind(this, 'success'), this.trigger.bind(this, 'error'));
-        return chain;
-      }.bind(this));
+      return chain;
     },
 
     _bindSubmission: function() {
