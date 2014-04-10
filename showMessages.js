@@ -1,11 +1,11 @@
-define(['jquery'], function ($) {
+define(['jquery'], function($) {
   'use strict';
 
   function showMessages($form, messages, options) {
     options = $.extend({
-      fade : true,
-      floating : false,
-      prepend : false
+      fade: true,
+      floating: false,
+      prepend: false
     }, options);
 
     var $container = $form.find('.messages'),
@@ -19,10 +19,10 @@ define(['jquery'], function ($) {
       }
 
       if (options.prepend) {
-        $container.prependTo( $form );
+        $container.prependTo($form);
       }
       else {
-        $container.appendTo( $form );
+        $container.appendTo($form);
       }
     }
 
@@ -31,14 +31,18 @@ define(['jquery'], function ($) {
 
       var msg_str;
 
-      switch ( msg.type ) {
+      switch (msg.type) {
         case 'error' :
         case 'message' :
         case 'success' :
           break;
 
         default :
-          throw ('"' + msg.type +'" is not a valid message type');
+          throw ('"' + msg.type + '" is not a valid message type');
+      }
+
+      if (msg.fade === false) {
+        options.fade = false;
       }
 
       msg_str = '<div class="' + msg.type + '">' +
@@ -54,7 +58,7 @@ define(['jquery'], function ($) {
     if (options.fade) {
       $container.delay(5000).fadeOut(1000);
     }
-  };
+  }
 
   return showMessages;
 });
