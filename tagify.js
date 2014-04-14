@@ -34,7 +34,7 @@ define([
     if (!texts.length || nonText >= options.limit) { return; }
 
     texts.some(function(text) {
-      this.insertBefore(render(text.textContent.trim(), options && options.template), text);
+      this.insertBefore(render(text.textContent.trim(), options.template), text);
       this.removeChild(text);
       return ++nonText >= options.limit;
     }, this);
@@ -67,6 +67,10 @@ define([
   keydownMap[$.ui.keyCode.BACKSPACE] = deleteTag;
 
   return function tagify($context, options) {
+    options = options || {};
+    var value = $context.val();
+    value = options.deserialize ? options.deserialze(value) : value.split('|');
+
     return $('<div>', {
       contenteditable: true,
       placeholder: $context[0].placeholder,
@@ -89,10 +93,13 @@ define([
           return $(tag).data('value');
         });
 
-        value = (options && options.serialize) ? options.serialize(value) : value.join('|');
+        value = options.serialize ? options.serialize(value) : value.join('|');
         $context.val(value);
       }
     })
-    .insertAfter($context.hide());
+    .insertAfter($context.hide())
+    .append(value.filter(Boolean).map(function(data) {
+      return render(data, options.template);
+    }));
   };
 });
