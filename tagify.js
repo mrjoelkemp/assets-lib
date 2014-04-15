@@ -1,7 +1,4 @@
-define([
-  'jquery',
-  'jquery/ui/core'
-], function($) {
+define(['jquery'], function($) {
   'use strict';
 
   function defaultTemplate(text) {
@@ -38,10 +35,14 @@ define([
       this.removeChild(text);
       return ++nonText >= options.limit;
     }, this);
-    $(this).trigger('change');
+    $(this).trigger('input change');
+
+    if (window.getSelection) {
+      window.getSelection().collapse(this, this.childNodes.length);
+    }
   },
 
-  deleteTag = function() {
+  deleteTag = function(e) {
     if (!window.getSelection) { return; }
 
     var selection = window.getSelection(),
@@ -50,21 +51,27 @@ define([
 
     // Remove previous child
     if (anchor === this && anchorOffset > 0) {
+      if (e) { e.preventDefault(); }
       this.childNodes[anchorOffset - 1].remove();
       $(this).trigger('change');
     }
     else if (anchor.nodeType === Node.TEXT_NODE && anchorOffset === 0) {
       if (anchor.previousSibling) {
+        if (e) { e.preventDefault(); }
         anchor.previousSibling.remove();
         $(this).trigger('change');
       }
     }
   },
 
-  keydownMap = {};
-  keydownMap[$.ui.keyCode.ENTER] = commitText;
-  keydownMap[$.ui.keyCode.COMMA] = commitText;
-  keydownMap[$.ui.keyCode.BACKSPACE] = deleteTag;
+  keydownMap = {
+    // Enter
+    13: commitText,
+    // Comma
+    188: commitText,
+    // Backspace
+    8: deleteTag
+  };
 
   return function tagify($context, options) {
     options = options || {};
@@ -79,6 +86,13 @@ define([
     .on({
       'input keypress': function() {
         $(this).toggleClass('has-value', !!this.textContent);
+        if (!(window.getSelection && this.childNodes.length)) { return; }
+
+        var lastChild = this.childNodes[this.childNodes.length - 1];
+        if (lastChild.nodeType === Node.TEXT_NODE && lastChild.textContent === '' ||
+            lastChild.nodeName === 'BR') { return; }
+
+        this.appendChild(document.createElement('br'));
       },
       keydown: function(event) {
         var fn;
@@ -100,6 +114,7 @@ define([
     .insertAfter($context.hide())
     .append(value.filter(Boolean).map(function(data) {
       return render(data, options.template);
-    }));
+    }))
+    .append('<br type="_moz">');
   };
 });
