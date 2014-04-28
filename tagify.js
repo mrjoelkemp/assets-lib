@@ -53,13 +53,13 @@ define(['jquery'], function($) {
     if (anchor === this && anchorOffset > 0) {
       if (e) { e.preventDefault(); }
       this.childNodes[anchorOffset - 1].remove();
-      $(this).trigger('change');
+      $(this).trigger('input change');
     }
     else if (anchor.nodeType === Node.TEXT_NODE && anchorOffset === 0) {
       if (anchor.previousSibling) {
         if (e) { e.preventDefault(); }
         anchor.previousSibling.remove();
-        $(this).trigger('change');
+        $(this).trigger('input change');
       }
     }
   },
@@ -97,6 +97,9 @@ define(['jquery'], function($) {
       keydown: function(event) {
         var fn;
         return (fn = keydownMap[event.which]) && fn.call(this, event, options);
+      },
+      click: function() {
+        this.focus();
       },
       blur: function() {
         return commitText.call(this, null, options);
