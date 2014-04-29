@@ -47,7 +47,7 @@ define(['jquery'], function($) {
           }
 
           if (pinterest.PIN) {
-            pinterest.PIN.f.init();
+            window[pinterest.PIN].f.init();
             return;
           }
 
