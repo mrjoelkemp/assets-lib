@@ -16,53 +16,70 @@ define(['jquery', 'nbd/Class'], function($, Class) {
     return Array.prototype.concat.apply([], arguments);
   },
   mergeLocal = function(search, arr) {
-    return this.filter( [], search ).concat(arr);
+    return this.filter([], search).concat(arr);
   },
 
   AutoSource = Class.extend({
-    options : {
-      maxLocal : Infinity,
-      caseInsensitive : false
+    /**
+     * a serialized version of values that will be automatically filtered from results
+     *
+     * @type {String}
+     */
+    _blacklist: '',
+
+    options: {
+      maxLocal: Infinity,
+      caseInsensitive: false,
+      minLength: 1,
     },
 
-    init : function( options ) {
+    init: function(options) {
       this._remotes = [];
       this._local = [];
 
-      $.extend(this.options, options);
+      this.setOptions(options);
 
       // These methods are extended onto source to ensure chainability
       this.source = $.extend(this.source.bind(this), {
-        addRemote : addRemote.bind(this),
-        addLocal : addLocal.bind(this)
+        addRemote: addRemote.bind(this),
+        addLocal: addLocal.bind(this)
       });
     },
 
     /**
-     * Function meant to return a deferred object from the added remotes
+     * sets options
+     *
+     * @param {Object} options key value pairs of options
+     */
+    setOptions: function(options) {
+      $.extend(this.options, options);
+    },
+
+    /**
+     * returns a deferred object from the added remotes
      * The context of this function is the search object.
      *
      * @param {String|Function} value A remote added by addRemote()
      * @see filter
      */
-    callRemote : function(value) {
-      if ( $.isFunction( value ) ) {
+    callRemote: function(value) {
+      if ($.isFunction(value)) {
         return value(this);
       }
       if (typeof value === 'string') {
-        return $.ajax({url:value, data:this});
+        return $.ajax({url: value, data: this});
       }
       return value;
     },
 
     /**
-     * Function meant to return objects to be merged into a single array
+     * returns objects to be merged into a single array
      * for the filter function to run on.
      *
      * @param {Function|Object} value Either the literal data object or a function that returns it
      */
-    callLocal : function(value) {
-      if ( $.isFunction( value ) ) {
+    callLocal: function(value) {
+      if ($.isFunction(value)) {
         return value(this);
       }
       return value;
@@ -75,7 +92,7 @@ define(['jquery', 'nbd/Class'], function($, Class) {
      * @param {Object} search Object with term as the string to match
      * @memoizes
      */
-    filter : function filter(cache, search) {
+    filter: function filter(cache, search) {
       this._filterMemo = this._filterMemo || {};
 
       var i, value,
@@ -83,7 +100,7 @@ define(['jquery', 'nbd/Class'], function($, Class) {
       maxLength = this.options.maxLocal || Infinity,
 
       term = search.term;
-      if ( this.options.caseInsensitive ) {
+      if (this.options.caseInsensitive) {
         term = term.toLocaleLowerCase();
       }
 
@@ -105,15 +122,20 @@ define(['jquery', 'nbd/Class'], function($, Class) {
     },
 
     /**
-     * Function meant to be handed to an autocomplete/autosuggest
+     * function meant to be handed to an autocomplete/autosuggest
+     *
+     * @param {Object} search contains search term from jQuery autocomplete
+     * @param {Function} callback the function to call with results formatted results
      */
-    source : function( search, callback ) {
+    source: function(search, callback) {
+      if (search.term.length < this.options.minLength) { return; }
+
       // Run the local search first
       var local = this._local.length ?
         this.filter(merge.apply(null, this._local.map(this.callLocal, search)), search) :
         [];
 
-      if ( this._remotes.length ) {
+      if (this._remotes.length) {
         if (local.length) { callback(local); }
 
         // Run the remote searches
@@ -125,14 +147,35 @@ define(['jquery', 'nbd/Class'], function($, Class) {
       else {
         callback(local);
       }
-    }
+    },
+
+    /**
+     * sets blacklist
+     *
+     * @param {String} blacklist serialized version of the blacklist
+     */
+    setBlacklist: function(blacklist) {
+      this._blacklist = blacklist;
+    },
   });
 
   function autosource(config) {
     var Source = new AutoSource(config);
     return Source.source;
   }
+
   autosource.constructor = AutoSource;
+
+  /**
+   * static init function provided to maintain api compatibility with
+   * be.net/inbox/lib/composeSource during transition
+   *
+   * @param {Object} config a set of configuration options
+   * @todo remove this once everything is using the actual constructor
+   */
+  autosource.init = function(config) {
+    return new AutoSource(config);
+  };
 
   return autosource;
 });
