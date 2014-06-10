@@ -76,7 +76,7 @@ define(['jquery'], function($) {
   return function tagify($context, options) {
     options = options || {};
     var value = $context.val();
-    value = options.deserialize ? options.deserialze(value) : value.split('|');
+    value = options.deserialize ? options.deserialize(value) : value.split('|');
 
     return $('<div>', {
       contenteditable: true,
